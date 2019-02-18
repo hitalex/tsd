@@ -1,3 +1,5 @@
+#coding=utf8
+
 import re
 import numpy as np
 from nltk.tokenize import TweetTokenizer
@@ -57,6 +59,45 @@ def extract_useful_tweets():
             for each_line in inputfile:
                 outputfile.write((each_line.strip()+'\t'+ids_tweets[each_line.strip()]+'\n').encode('latin-1'))
 
+def reformat_multitarget_dataset(input_path, output_path):
+    # 重新调整multitarget数据集格式
+    import csv
+    output_file = open(output_path, 'w')
+    with open(input_path) as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            text = row[1]
+            label = row[2]
+            output_file.write('%s\t%s\n' % (text, label))
+
+    output_file.close()
+
+def reformat_bitlem_dataset(input_dir, output_path):
+    ''' 重新调整bitlem数据集的格式
+    input_dir: 包含train和test两个文件夹，分别表示训练和测试数据，其中每个文件是一个样本
+    '''
+    import csv
+    import os
+    output_file = open(output_path, 'w')
+    writer = csv.writer(output_file, delimiter='\t')
+    for _, _, filename_list in os.walk(input_dir):
+        for filename in filename_list:
+            if 'ISRAELI' in filename:
+                label = 0
+            elif 'PALESTINIAN' in filename:
+                label = 1
+            else:
+                continue
+
+            path = os.path.join(input_dir, filename)
+            f = open(path)
+            text = f.read()
+            f.close()
+            writer.writerow([text, label])
+
+        break
+    
+    output_file.close()
 
 if __name__ == '__main__':
     # print TweetTokenizer().tokenize(preprocess_tweets('I TEST all kinds of #hashtags and #HASHTAGS, @mentions and 3000 (http://t.co/dkfjkdf). w/ <3 :) haha!!!!!'))
